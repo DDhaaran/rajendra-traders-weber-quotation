@@ -920,6 +920,7 @@ function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,
 var settings=(function(){
   var s={}, k; for(k in DEFAULTS) s[k]=DEFAULTS[k];
   try{ var saved=JSON.parse(lsGet(LS_S)||'{}'); for(k in saved) if(k in DEFAULTS) s[k]=saved[k]; }catch(e){}
+  ['business_name','since_line','tagline','doc_title','gstin','address'].forEach(function(k){ s[k]=DEFAULTS[k]; });
   return s;
 })();
 function saveSettings(){ lsSet(LS_S,JSON.stringify(settings)); }
@@ -948,8 +949,7 @@ function parseProducts(text){
   });
   return out;
 }
-var products=parseProducts(lsGet(LS_P)||DEFAULT_CSV);
-if(!products.length) products=parseProducts(DEFAULT_CSV);
+var products=parseProducts(DEFAULT_CSV);
 
 /* ================= number helpers (integer maths: no float drift) ================= */
 function divRound(a,b){ return Math.floor((2*a+b)/(2*b)); }
