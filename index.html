@@ -1487,7 +1487,12 @@ window.addEventListener('appinstalled',function(){ $('installHint').style.displa
 
 /* offline support */
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
-  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  window.addEventListener('load',function(){
+    if(navigator.serviceWorker.controller){
+      navigator.serviceWorker.addEventListener('controllerchange',function(){ window.location.reload(); },{once:true});
+    }
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
 }
 
 /* ================= start ================= */
