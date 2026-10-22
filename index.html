@@ -1346,11 +1346,11 @@ function makeDoc(){
 function sharePdf(){
   var doc=makeDoc(); if(!doc) return;
   var file=new File([doc.output('blob')],pdfFileName(),{type:'application/pdf'});
-  navigator.share({files:[file],title:'Quotation'}).catch(function(e){ if(e&&e.name!=='AbortError') tell('Could not share: '+(e.message||e)); });
+  navigator.share({files:[file],title:'Quotation'}).then(function(){ startNewQuotation(); hud('Quotation shared. Ready for a new one.'); }).catch(function(e){ if(e&&e.name!=='AbortError') tell('Could not share: '+(e.message||e)); });
 }
 function downloadPdf(){
   var doc=makeDoc(); if(!doc) return;
-  try{ doc.save(pdfFileName()); hud('PDF saved'); }catch(e){ tell('Could not save the PDF: '+(e&&e.message?e.message:e)); }
+  try{ doc.save(pdfFileName()); startNewQuotation(); hud('PDF saved. Ready for a new quotation.'); }catch(e){ tell('Could not save the PDF: '+(e&&e.message?e.message:e)); }
 }
 var pvUrl=null;
 function openPreview(fromAct){
@@ -1384,9 +1384,13 @@ $('pvClose').addEventListener('click',function(){ closeSheet('shPrev'); });
 $('pvShare').addEventListener('click',function(){ if(SHARE) sharePdf(); else downloadPdf(); });
 
 /* ================= new quotation ================= */
+function startNewQuotation(){
+  state=newState(); saveDraft(); syncInputs(); renderMain(); $('scroll').scrollTop=0;
+  if($('shPrev').classList.contains('open')) closeSheet('shPrev');
+}
 $('btnNew').addEventListener('click',function(){
   if(!state.items.length && !state.customer.trim()){ hud('Already a blank quotation'); return; }
-  ask('Clear this quotation and start a new one?','Clear',function(){ state=newState(); saveDraft(); syncInputs(); renderMain(); $('scroll').scrollTop=0; },true);
+  ask('Clear this quotation and start a new one?','Clear',startNewQuotation,true);
 });
 
 /* ================= settings ================= */
