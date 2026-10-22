@@ -1008,25 +1008,14 @@ function calcQuote(){
   return {items:items,sub:sub,gst:gst,round:grand-raw,grand:grand,bp:bp};
 }
 
-/* ================= quotation state (auto-saved draft) ================= */
+/* ================= quotation state (auto-saved while the app is open) ================= */
 var state;
 function newState(){
   return {customer:'',date:todayISO(),validity:settings.validity_days,cperson:settings.contact_person,cno:settings.contact_no,items:[],seq:0};
 }
-function loadDraft(){
-  var s=newState();
-  try{
-    var d=JSON.parse(lsGet(LS_D)||'null');
-    if(d && Array.isArray(d.items)){
-      ['customer','date','validity','cperson','cno'].forEach(function(k){ if(typeof d[k]==='string') s[k]=d[k]; });
-      s.items=d.items.filter(function(r){ return r && typeof r.desc==='string'; });
-      s.seq=Number(d.seq)||s.items.length;
-    }
-  }catch(e){}
-  return s;
-}
 function saveDraft(){ lsSet(LS_D,JSON.stringify(state)); }
-state=loadDraft();
+state=newState();
+saveDraft();
 
 /* ================= PDF (jsPDF) ================= */
 /* ================= PDF (drawn directly with jsPDF: no print window) ================= */
