@@ -328,16 +328,16 @@ html.android .installhint{background:var(--cell);border-radius:16px;margin:8px 1
 <div class="sheet" id="shSet" aria-hidden="true">
   <div class="snav"><span style="min-width:64px"></span><div class="ttl">Settings</div><button class="r" id="setDone">Done</button></div>
   <div class="sbody">
-    <div class="gh" style="margin-top:8px">Business (printed on the PDF)</div>
+    <div class="gh" style="margin-top:8px">Business profile (locked)</div>
     <div class="group">
-      <label class="row"><span class="lab">Name</span><input data-k="business_name" autocomplete="off"></label>
-      <label class="row"><span class="lab">Line below</span><input data-k="since_line" autocomplete="off"></label>
-      <label class="row"><span class="lab">Tagline</span><input data-k="tagline" autocomplete="off"></label>
-      <label class="row"><span class="lab">Title</span><input data-k="doc_title" autocomplete="off"></label>
-      <label class="row"><span class="lab">GSTIN</span><input data-k="gstin" autocomplete="off" autocapitalize="characters"></label>
-      <label class="row col"><span class="lab">Address</span><textarea data-k="address" rows="4" autocomplete="off"></textarea></label>
+      <label class="row"><span class="lab">Name</span><input data-k="business_name" autocomplete="off" readonly></label>
+      <label class="row"><span class="lab">Line below</span><input data-k="since_line" autocomplete="off" readonly></label>
+      <label class="row"><span class="lab">Tagline</span><input data-k="tagline" autocomplete="off" readonly></label>
+      <label class="row"><span class="lab">Title</span><input data-k="doc_title" autocomplete="off" readonly></label>
+      <label class="row"><span class="lab">GSTIN</span><input data-k="gstin" autocomplete="off" autocapitalize="characters" readonly></label>
+      <label class="row col"><span class="lab">Address</span><textarea data-k="address" rows="4" autocomplete="off" readonly></textarea></label>
     </div>
-    <div class="gf">Each line of the address is printed on its own line.</div>
+    <div class="gf">Business details are locked. Each address line is printed on its own line.</div>
 
     <div class="gh">For new quotations</div>
     <div class="group">
@@ -358,19 +358,8 @@ html.android .installhint{background:var(--cell);border-radius:16px;margin:8px 1
     <div class="gf">One per line. Numbers are added automatically.</div>
 
     <div class="gh">Price list</div>
-    <div class="group"><div class="row tap" id="openProducts"><span>Edit product list</span><span class="val" style="color:var(--label2)" id="prodCount"></span><span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span></div></div>
+    <div class="group"><div class="row"><span>Product list</span><span class="val" style="color:var(--label2)" id="prodCount"></span><span style="color:var(--label2)">Locked</span></div></div>
     <div class="gf" style="text-align:center;margin-top:22px">Quotation Maker &middot; works offline &middot; your quotations stay on this device</div>
-  </div>
-</div>
-
-<!-- ============ PRODUCT LIST EDITOR ============ -->
-<div class="overlay top" id="ov_shProd"></div>
-<div class="sheet top" id="shProd" aria-hidden="true">
-  <div class="snav"><button class="l" id="prCancel">Cancel</button><div class="ttl">Product list</div><button class="r" id="prSave">Save</button></div>
-  <div class="sbody">
-    <div class="gf" style="padding-top:0;margin-bottom:10px">One product per line: category, name, colour, pack_size, sell_unit (bags, pkts or nos). Leave colour empty if none.</div>
-    <div style="padding:0 16px"><textarea class="mono" id="prText" rows="18" spellcheck="false" autocapitalize="none" autocorrect="off"></textarea></div>
-    <div class="group" style="margin-top:20px"><div class="row tap center red" id="prReset">Reset to the Weber price list</div></div>
   </div>
 </div>
 
@@ -1396,6 +1385,7 @@ $('btnSettings').addEventListener('click',function(){ fillSettings(); openSheet(
 $('setDone').addEventListener('click',function(){ closeSheet('shSet'); });
 $('shSet').addEventListener('input',function(e){
   var el=e.target, k=el.getAttribute&&el.getAttribute('data-k'); if(!k) return;
+  if(['business_name','since_line','tagline','doc_title','gstin','address'].indexOf(k)>=0) return;
   var v=el.value;
   if(k==='gst_rate'){
     var ok=parseScaled(v,2)!==null; el.style.color=ok?'':'var(--red)';
@@ -1411,22 +1401,6 @@ $('shSet').addEventListener('input',function(e){
 });
 $('setColour').addEventListener('change',function(){ settings.show_colour=$('setColour').checked; saveSettings(); });
 
-/* product list editor */
-function productsToCsv(list){
-  function q(x){ x=String(x==null?'':x); return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x; }
-  return ['category,name,color,pack_size,sell_unit'].concat(list.map(function(p){ return [p.category,p.name,p.color,p.pack,p.sell].map(q).join(','); })).join('\n');
-}
-$('openProducts').addEventListener('click',function(){ $('prText').value=productsToCsv(products); openSheet('shProd'); });
-$('prCancel').addEventListener('click',function(){ closeSheet('shProd'); });
-$('prReset').addEventListener('click',function(){ ask('Replace the list with the original Weber price list?','Replace',function(){ $('prText').value=DEFAULT_CSV.trim(); },true); });
-$('prSave').addEventListener('click',function(){
-  var list=parseProducts($('prText').value);
-  if(!list.length){ tell('No valid product lines found.'); return; }
-  products=list;
-  if($('prText').value.trim()===DEFAULT_CSV.trim()) lsDel(LS_P); else lsSet(LS_P,$('prText').value);
-  $('prodCount').textContent=products.length+' items'; closeSheet('shProd'); hud(list.length+' products saved');
-});
-
 /* ================= phone behaviour ================= */
 function isEditable(el){ return el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && !/^(checkbox|date|radio)$/.test(el.type||''); }
 document.addEventListener('focusin',function(e){ if(isEditable(e.target)) document.body.classList.add('kbd'); });
@@ -1440,7 +1414,7 @@ if(window.visualViewport){
   var fit=function(){ document.documentElement.style.setProperty('--vvh',Math.round(vv.height)+'px'); if(window.scrollY) window.scrollTo(0,0); };
   vv.addEventListener('resize',fit); vv.addEventListener('scroll',function(){ if(window.scrollY) window.scrollTo(0,0); }); fit();
 }
-['ov_shItem','ov_shSet','ov_shProd'].forEach(function(id){ $(id).addEventListener('touchmove',function(e){ e.preventDefault(); },{passive:false}); });
+['ov_shItem','ov_shSet'].forEach(function(id){ $(id).addEventListener('touchmove',function(e){ e.preventDefault(); },{passive:false}); });
 
 /* Android: touch ripple + install button + labels */
 if(ANDROID){
